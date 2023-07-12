@@ -1,0 +1,36 @@
+config:
+    tick_len: 10000
+    source_init_ticks: 1000
+    num_ticks: 1000
+
+signals:
+    audio_data:
+        shape: 441
+        dtype: int16
+        history: 10000
+
+modules:
+    # sources
+    audio_in:
+        language: python
+        # constructor: True
+        # parser: True
+        in:
+            name: cerebus_in
+            args:
+                type: file_audio
+                audio_file: "../../<your-mp3-file-here>.mp3"
+            schema:
+                data:
+                    dtype: int16
+                    size: 441
+        out:
+            - audio_data
+
+    # modules
+    audio_print:
+        language: python
+        parser: True
+        in:
+            - audio_data
+
