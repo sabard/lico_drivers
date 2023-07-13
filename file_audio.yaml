@@ -1,6 +1,6 @@
 config:
     tick_len: 10000
-    source_init_ticks: 1000
+    source_init_ticks: 10
     num_ticks: 1000
 
 signals:
