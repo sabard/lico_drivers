@@ -16,10 +16,10 @@ modules:
         # constructor: True
         # parser: True
         in:
-            name: cerebus_in
+            name: audio_in
             args:
                 type: file_audio
-                audio_file: "../../<your-mp3-file-here>.mp3"
+                audio_file: "../../rise_above_the_storm.mp3"
             schema:
                 data:
                     dtype: int16
@@ -34,3 +34,15 @@ modules:
         in:
             - audio_data
 
+    audio_vis:
+        language: python
+        constructor: True
+        parser: True
+        destructor: True
+        in:
+            - audio_data
+        out:
+            name: audio_out
+            async: True
+            args:
+                type: vis_pygame
