@@ -14,8 +14,8 @@ pygame.display.init()
 
 
 black = (0, 0, 0)
-screen_width = 1280
-screen_height = 1024
+screen_width = 400
+screen_height = 400
 window = pygame.display.set_mode((screen_width, screen_height), pygame.DOUBLEBUF)
 # window.fill(black)
 screen = pygame.display.get_surface()

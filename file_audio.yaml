@@ -19,7 +19,7 @@ modules:
             name: audio_in
             args:
                 type: file_audio
-                audio_file: "../../rise_above_the_storm.mp3"
+                audio_file: "../../<your_audio_file>.mp3"
             schema:
                 data:
                     dtype: int16
@@ -34,6 +34,7 @@ modules:
         in:
             - audio_data
 
+    # sinks
     audio_vis:
         language: python
         constructor: True
@@ -46,3 +47,17 @@ modules:
             async: True
             args:
                 type: vis_pygame
+
+    # TODO implement saving back to file
+    # audio_vis:
+    #     language: python
+    #     constructor: True
+    #     parser: True
+    #     destructor: True
+    #     in:
+    #         - audio_data
+    #     out:
+    #         name: audio_out
+    #         async: True
+    #         args:
+    #             type: vis_pygame

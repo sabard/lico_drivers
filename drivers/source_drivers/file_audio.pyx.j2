@@ -10,11 +10,13 @@ cdef int16_t *pAudio
 # __DRIVER_CODE__ setup
 
 full_audio_data, fs = librosa.load(
-  "{{ in_signal["args"]["audio_file"] }}", sr=22050*2
+  "{{ in_signal["args"]["audio_file"] }}", sr=44100
 )
 audio_len = full_audio_data.size
 frame_len = {{ in_signal["schema"]["data"]["size"] }}
 pAudioStart = <int16_t *><long>full_audio_data.__array_interface__["data"][0]
+full_audio_data
+
 pAudio = pAudioStart
 
 # __DRIVER_CODE__ read
