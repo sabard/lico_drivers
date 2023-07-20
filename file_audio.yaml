@@ -17,9 +17,13 @@ modules:
         # parser: True
         in:
             name: audio_in
+            async: True
             args:
-                type: file_audio
-                audio_file: "../../<your_audio_file>.mp3"
+                # type: file_audio
+                # audio_file: "../../<your_audio_file>.mp3"
+                type: sounddevice
+                rate: 44100
+                device: "digital input"
             schema:
                 data:
                     dtype: int16

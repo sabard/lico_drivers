@@ -1,0 +1,29 @@
+# __DRIVER_CODE__ imports
+
+import sounddevice as sd
+
+# __DRIVER_CODE__ variables
+
+sd.default.samplerate = {{ in_signal["args"]["rate"] }}
+# sd.default.device = "{{ in_signal["args"]["device"] }}"
+cdef int16_t *pAudio
+
+# __DRIVER_CODE__ setup
+
+input_stream = sd.InputStream(channels=2, dtype='int16')
+input_stream.start()
+frame_len = 441
+
+# __DRIVER_CODE__ read
+
+  print(input_stream.read_available)
+  audio_np = input_stream.read(frame_len)
+  overflowed = audio_np[1]
+  pAudio = <int16_t *><long>audio_np[0].__array_interface__["data"][0]
+  memcpy(
+    inBuf,
+    pAudio,
+    sizeof(int16_t) * frame_len
+  )
+
+# __DRIVER_CODE__ exit_handler
