@@ -1,0 +1,59 @@
+# __DRIVER_CODE__ imports
+
+import pygame
+import pygame.midi
+
+# __DRIVER_CODE__ variables
+
+# __DRIVER_CODE__ setup
+
+class MidiKeyboard():
+  def __init__(self):
+    try:
+      pygame.init()
+      pygame.midi.init()
+
+      if pygame.midi.get_count() < 1:
+        print('Midi board not found!\n')
+
+    except Exception as e:
+      print(e)
+
+    self.midiDevice = pygame.midi.Input(
+      {{in_signal["args"]["midi_device"]}}
+    )
+
+def poll(self):
+  return True
+
+def read(self, a):
+  return ((0, 1))
+
+mIn = MidiKeyboard()
+
+# __DRIVER_CODE__ read
+
+
+  if mIn.midiDevice.poll():
+
+    event = mIn.midiDevice.read(1)[0]
+    ev_data = event[0]
+    print(ev_data, flush=True)
+
+    button = ev_data[1] # which button
+    ev_value = ev_data[2] # value
+
+    inBuf[0] = ev_data[0]
+    inBuf[1] = button
+    inBuf[2] = ev_value
+    inBuf[3] = ev_data[3]
+    inBufLen = 1
+  else:
+    inBufLen = 0
+
+{% if async %}
+  time.sleep(0.01) # ms timing
+{% endif %}
+
+
+# __DRIVER_CODE__ exit_handler
