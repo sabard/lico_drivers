@@ -1,0 +1,19 @@
+from libc.errno cimport errno, EINTR
+from libc.stdint cimport uint8_t, uint16_t, uint32_t
+from libc.stdio cimport fprintf, stderr
+from libc.string cimport memset
+from posix.types cimport suseconds_t, time_t
+from posix.unistd cimport close
+
+import pygame
+import pygame.midi
+
+from runner_utils cimport times_t
+from source_drivers cimport source_driver
+
+
+cdef class MidiSourceDriver(source_driver.SourceDriver):
+  cdef object mIn
+
+  cdef size_t run(self, times_t *times, void *inBuf, size_t packetSize, object out_sigs) except *
+  cdef void exit_handler(self, int exitStatus) except *
