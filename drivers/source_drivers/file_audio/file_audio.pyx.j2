@@ -1,0 +1,26 @@
+cdef class MidiSourceDriver(source_driver.SourceDriver):
+
+
+  def __init__(self):
+    full_audio_data, fs = librosa.load(
+      "{{ in_signal["args"]["audio_file"] }}", sr=22050*2
+    )
+    audio_len = full_audio_data.size
+    frame_len = {{ in_signal["schema"]["data"]["size"] }}
+    self.pAudioStart = <int16_t *><long>full_audio_data.__array_interface__["data"][0]
+    self.pAudio = self.pAudioStart
+
+
+  cdef size_t run(self, times_t *times, void *inBuf, size_t packetSize, object *out_sigs, object *out_sig_lens) except *:
+    memcpy(
+      inBuf,
+      self.self.pAudio,
+      sizeof(int16_t) * frame_len
+    )
+    self.pAudio += {{ in_signal["schema"]["data"]["size"] }}
+    if self.pAudio - self.pAudioStart > audio_len:
+      self.pAudio = self.pAudioStart
+
+
+  cdef void exit_handler(self, int exitStatus) except *:
+    pass

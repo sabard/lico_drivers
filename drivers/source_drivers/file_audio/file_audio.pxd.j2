@@ -1,0 +1,15 @@
+from libc.stdio cimport printf
+from libc.stdlib cimport malloc, free, EXIT_SUCCESS, EXIT_FAILURE
+from libc.stdint cimport int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t, int64_t, uint64_t
+from posix.signal cimport sigset_t, sigfillset
+from libc.string cimport memcpy
+
+import librosa
+
+
+cdef class MidiSourceDriver(source_driver.SourceDriver):
+  cdef int16_t *pAudioStart
+  cdef int16_t *pAudio
+
+  cdef size_t run(self, times_t *times, void *inBuf, size_t packetSize, object *out_sigs, object *out_sig_lens) except *
+  cdef void exit_handler(self, int exitStatus) except *

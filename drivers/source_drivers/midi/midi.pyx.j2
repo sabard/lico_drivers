@@ -1,56 +1,66 @@
+import pygame
+import pygame.midi
+import time
+
 class MidiKeyboard():
-  def __init__(self):
-    try:
-      pygame.init()
-      pygame.midi.init()
+    def __init__(self):
+        try:
+            pygame.init()
+            pygame.midi.init()
 
-      if pygame.midi.get_count() < 1:
-        print('Midi board not found!\n')
+            if pygame.midi.get_count() < 1:
+                print('Midi board not found!\n')
 
-    except Exception as e:
-      print(e)
+        except Exception as e:
+            print(e)
 
-    self.midiDevice = pygame.midi.Input(
-      {{in_signal["args"]["midi_device"]}}, 100
-    )
+        self.midiDevice = pygame.midi.Input(
+            {{in_signal["args"]["midi_device"]}}, 100
+        )
 
 def poll(self):
-  return True
+    return True
 
 def read(self, a):
-  return ((0, 1))
+    return ((0, 1))
 
 
 cdef class MidiSourceDriver(source_driver.SourceDriver):
-  def __init__(self):
-    self.mIn = MidiKeyboard()
+    def __init__(self):
+        self.mIn = MidiKeyboard()
 
-  cdef size_t run(self, times_t *times, void *inBuf, size_t packetSize, object out_sigs) except *
+    cdef size_t run(self, times_t *times, void *inBuf, size_t packetSize, object out_sigs) except *:
+        pygame.event.pump()
 
-    if self.mIn.midiDevice.poll():
+        if self.mIn.midiDevice.poll():
+            events = self.mIn.midiDevice.read(100)
+            inBufLen = len(events) * 4
+            for i, event in enumerate(events):
+                ev_data = event[0]
 
-      events = self.mIn.midiDevice.read(100)
-      inBufLen = len(events)
-      for i, event in enumerate(events):
-        ev_data = event[0]
+                button = ev_data[1] # which button
+                ev_value = ev_data[2] # value
 
-        button = ev_data[1] # which button
-        ev_value = ev_data[2] # value
-
-        inBuf[4*i + 0] = ev_data[0]
-        inBuf[4*i + 1] = button
-        inBuf[4*i + 2] = ev_value
-        inBuf[4*i + 3] = ev_data[3]
-    else:
-      inBufLen = 0
-
-    {{out_signal_name}}BufVars[5] = inBufLen * 4
-    {{out_signal_name}}BufVars[13] = inBufLen
-
-  {% if async %}
-    time.sleep(0.01) # ms timing
-  {% endif %}
+                (<uint32_t *>inBuf)[4*i + 0] = ev_data[0]
+                (<uint32_t *>inBuf)[4*i + 1] = button
+                (<uint32_t *>inBuf)[4*i + 2] = ev_value
+                (<uint32_t *>inBuf)[4*i + 3] = ev_data[3]
+        else:
+            inBufLen = 0
 
 
-  cdef void exit_handler(self, int exitStatus) except *:
-    pass
+        # TODO uncomment?
+        # {{out_signal_name}}BufVars[5] = inBufLen * 4
+        # {{out_signal_name}}BufVars[13] = inBufLen
+
+    {% if async %}
+        time.sleep(0.01) # ms timing
+    {% endif %}
+
+        return inBufLen
+
+
+
+
+    cdef void exit_handler(self, int exitStatus) except *:
+        pass
