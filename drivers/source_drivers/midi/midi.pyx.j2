@@ -1,0 +1,139 @@
+{% set in_buf_type = in_signal["schema"]["data"]["ctype"] -%}
+
+from libc.stdint cimport {{in_buf_type}}
+
+import time
+
+import pygame
+import pygame.midi
+from pynput import keyboard
+import sshkeyboard
+
+cdef class MidiSshKeyboard():
+    cdef int32_t event
+    cdef int32_t key
+
+    def __cinit__(self):
+        pass
+
+    cdef press(self, object key):
+        self.key = ord(key)
+        self.event = 144
+
+        sshkeyboard.stop_listening()
+
+
+    cdef release(self, object key):
+        self.key = ord(key)
+        self.event = 128
+
+        sshkeyboard.stop_listening()
+
+
+    def poll(self):
+        sshkeyboard.listen_keyboard(
+            on_press=self.press,
+            on_release=self.release,
+        )
+        return True
+
+    def read(self, a):
+        ev_value = 127
+        # ev_data = (None, button, ev_value)
+        ev_data = (self.event, self.key, ev_value, 0)
+        event = (ev_data, )
+        return [event]
+
+cdef class MidiPynput():
+    cdef int32_t event
+    cdef int32_t key
+
+    def __cinit__(self):
+        pass
+
+    cdef press(self, object key):
+        print(f"PRESS: {key}", flush=True)
+        if isinstance(key, keyboard.KeyCode):
+            self.key = ord(key.char) - 40
+            self.event = 144
+
+        return False
+
+
+    cdef release(self, object key):
+        print(f"RELEASE: {key}", flush=True)
+        if isinstance(key, keyboard.KeyCode):
+            self.key = ord(key.char) - 40
+            self.event = 128
+
+        return False
+
+    def poll(self):
+        with keyboard.Listener(
+            on_press=self.press,
+            on_release=self.release
+        ) as listener:
+            listener.join()
+
+        return True
+
+    def read(self, a):
+        ev_value = 127
+        # ev_data = (None, button, ev_value)
+        ev_data = (self.event, self.key, ev_value, 0)
+        event = (ev_data, )
+        return [event]
+
+cdef class MidiSourceDriver(source_driver.SourceDriver):
+    def __cinit__(self):
+        pygame.init()
+        pygame.midi.init()
+
+        midi_device = {{in_signal["args"]["midi_device"]}}
+
+        if pygame.midi.get_count() <= midi_device:
+            print(
+                f"MIDI device {midi_device} not found. "
+                "Defaulting to keyboard.\n", flush=True
+            )
+
+            self.midi_device = MidiPynput()
+        else:
+            self.midi_device = pygame.midi.Input(
+              {{in_signal["args"]["midi_device"]}}, 100
+            )
+
+
+    cdef size_t run(
+        self, times_t *times, void *inBuf, size_t packetSize, object out_sigs
+    ) except *:
+
+        if self.midi_device.poll():
+            events = self.midi_device.read(100)
+            inBufLen = len(events)
+            for i, event in enumerate(events):
+                ev_data = event[0]
+
+                button = ev_data[1] # which button
+                ev_value = ev_data[2] # value
+
+                (<int32_t *>inBuf)[4*i + 0] = <int32_t>ev_data[0]
+                (<int32_t *>inBuf)[4*i + 1] = <int32_t>button
+                (<int32_t *>inBuf)[4*i + 2] = <int32_t>ev_value
+                (<int32_t *>inBuf)[4*i + 3] = <int32_t>ev_data[3]
+        else:
+            inBufLen = 0
+
+        # {{out_signal_name}}BufVars[5] = inBufLen * 4
+        # {{out_signal_name}}BufVars[13] = inBufLen
+
+    {% if async %}
+        time.sleep(0.01) # ms timing
+    {% endif %}
+
+
+        return inBufLen
+
+
+    cdef void exit_handler(self, int exitStatus) except *:
+        pass

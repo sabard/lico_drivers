@@ -1,0 +1,35 @@
+{% set in_buf_type = in_signal["schema"]["data"]["ctype"] -%}
+
+from libc.stdint cimport {{in_buf_type}}
+
+import sshkeyboard
+
+cdef class KeyboardSourceDriver(source_driver.SourceDriver):
+    cdef press(self, object key):
+        print("key: ", key, flush=True)
+
+        # stop
+        if key == '0':
+            (<{{in_buf_type}} *>self.buf)[0] = 0
+
+        # start
+        elif key == '1':
+            (<{{in_buf_type}} *>self.buf)[0] = 1
+
+        sshkeyboard.stop_listening()
+
+
+    cdef release(self, object key):
+        pass
+
+    cdef size_t run(
+        self, times_t *times, void *inBuf, size_t packetSize, object out_sigs
+    ) except *:
+        self.buf = inBuf
+        sshkeyboard.listen_keyboard(
+            on_press=self.press,
+            on_release=self.release,
+        )
+
+    cdef void exit_handler(self, int exitStatus) except *:
+      pass
